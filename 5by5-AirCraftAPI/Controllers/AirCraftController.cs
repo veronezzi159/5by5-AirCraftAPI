@@ -127,12 +127,43 @@ namespace _5by5_AirCraftAPI.Controllers
             }
 
             _context.AirCraft.Remove(airCraft);
+            
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        [HttpPut("{rab}")]
+        [HttpPut("UpdateData/{rab}/{newDate}")]
+        public async Task<IActionResult> UpdateData(string rab, string newDate)
+        {
+            var airCraft = await _context.AirCraft.FindAsync(rab);
+            var date = DateTime.Parse(newDate);
+            if (airCraft == null)
+            {
+                return NotFound();
+            }
+            if(date < airCraft.DTLastFlight)
+            {
+                return BadRequest("Date is before last flight");
+            }
+
+            airCraft.DTLastFlight = date;
+            _context.Update(airCraft);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                
+            }
+            catch (Exception)
+            {
+                return Problem("Error updating date");
+            }
+
+
+            return NoContent();
+        }
+
 
         private bool AirCraftExists(string id)
         {
