@@ -18,22 +18,30 @@ namespace _5by5_AirCraftAPI.Controllers
     {
         private readonly _5by5_AirCraftAPIContext _context;
         private readonly ServiceCnpj _serviceCnpj;
+        private readonly ServiceDataFormat _serviceDataFormat;
 
-        public AirCraftController(_5by5_AirCraftAPIContext context, ServiceCnpj cnpj)
+        public AirCraftController(_5by5_AirCraftAPIContext context, ServiceCnpj cnpj,ServiceDataFormat dataFormat)
         {
             _context = context;
             _serviceCnpj = cnpj;
+            _serviceDataFormat = dataFormat;
         }
 
         // GET: api/AirCraft
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AirCraft>>> GetAirCraft()
+        public async Task<ActionResult<IEnumerable<AirCraftDTO>>> GetAirCraft()
         {
+            var dto = new List<AirCraftDTO>();
           if (_context.AirCraft == null)
           {
               return NotFound();
           }
-            return await _context.AirCraft.ToListAsync();
+           var BD =  await _context.AirCraft.ToListAsync();
+            foreach(var item in BD)
+            {
+                dto.Add(new AirCraftDTO { Rab = item.Rab,Capacity = item.Capacity, DTRegistry = _serviceDataFormat.MaskDate(item.DTRegistry),DTLastFlight = _serviceDataFormat.MaskDate(item.DTLastFlight),CnpjCompany = item.CnpjCompany });
+            }
+            return dto;
         }
 
         // GET: api/AirCraft/5

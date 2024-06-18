@@ -11,6 +11,7 @@ builder.Services.AddDbContext<_5by5_AirCraftAPIContext>(options =>
 builder.Services.AddControllers();
 
 builder.Services.AddSingleton<ServiceCnpj>();
+builder.Services.AddSingleton<ServiceDataFormat>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
