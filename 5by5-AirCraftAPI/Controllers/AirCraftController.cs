@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using _5by5_AirCraftAPI.Data;
 using _5by5_AirCraftAPI.Models;
+using _5by5_AirCraftAPI.Services;
 
 namespace _5by5_AirCraftAPI.Controllers
 {
@@ -15,10 +16,12 @@ namespace _5by5_AirCraftAPI.Controllers
     public class AirCraftController : ControllerBase
     {
         private readonly _5by5_AirCraftAPIContext _context;
+        private readonly ServiceCapacity _serviceCapacity;
 
         public AirCraftController(_5by5_AirCraftAPIContext context)
         {
             _context = context;
+            _serviceCapacity = new ServiceCapacity();
         }
 
         // GET: api/AirCraft
@@ -61,6 +64,11 @@ namespace _5by5_AirCraftAPI.Controllers
             {
                 return BadRequest();
             }
+            
+            if (!_serviceCapacity.verifyCapacity(airCraft))
+            {
+                return Conflict("Capacidade invalida");
+            } 
 
             _context.Entry(airCraft).State = EntityState.Modified;
 
@@ -92,9 +100,17 @@ namespace _5by5_AirCraftAPI.Controllers
           {
               return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
           }
-            _context.AirCraft.Add(airCraft);
+          
+          if (!_serviceCapacity.verifyCapacity(airCraft))
+            {
+                return Conflict("Capacidade invalida");
+            }
+          
+
+           
             try
             {
+                _context.AirCraft.Add(airCraft);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
