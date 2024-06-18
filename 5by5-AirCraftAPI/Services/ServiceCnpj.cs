@@ -17,7 +17,6 @@ namespace _5by5_AirCraftAPI.Services
                 var company = JsonConvert.DeserializeObject<Company>(response.Content.ReadAsStringAsync().Result);
                 if (company != null && company.Cnpj.Length >= 14)
                 {
-                    
                     return company.Cnpj ;
                 }
                 
