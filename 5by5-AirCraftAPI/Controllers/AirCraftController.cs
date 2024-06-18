@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using _5by5_AirCraftAPI.Data;
 using _5by5_AirCraftAPI.Models;
+using _5by5_AirCraftAPI.Services;
 
 namespace _5by5_AirCraftAPI.Controllers
 {
@@ -15,10 +16,12 @@ namespace _5by5_AirCraftAPI.Controllers
     public class AirCraftController : ControllerBase
     {
         private readonly _5by5_AirCraftAPIContext _context;
+        private readonly ServiceCnpj _serviceCnpj;
 
-        public AirCraftController(_5by5_AirCraftAPIContext context)
+        public AirCraftController(_5by5_AirCraftAPIContext context, ServiceCnpj cnpj)
         {
             _context = context;
+            _serviceCnpj = cnpj;
         }
 
         // GET: api/AirCraft
@@ -88,6 +91,11 @@ namespace _5by5_AirCraftAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<AirCraft>> PostAirCraft(AirCraft airCraft)
         {
+            if (_serviceCnpj.ValidationCnpj(airCraft.CnpjCompany) == "")
+            {
+                return Problem("Cnpj not found");
+            }
+
           if (_context.AirCraft == null)
           {
               return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
