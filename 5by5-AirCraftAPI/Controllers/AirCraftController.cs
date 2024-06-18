@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using _5by5_AirCraftAPI.Data;
 using _5by5_AirCraftAPI.Models;
 using _5by5_AirCraftAPI.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace _5by5_AirCraftAPI.Controllers
 {
@@ -99,7 +100,8 @@ namespace _5by5_AirCraftAPI.Controllers
           if (_context.AirCraft == null)
           {
               return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
-          }
+            }
+            airCraft.CnpjCompany = _serviceCnpj.CnpjMask(airCraft.CnpjCompany);
             _context.AirCraft.Add(airCraft);
             try
             {
@@ -116,7 +118,6 @@ namespace _5by5_AirCraftAPI.Controllers
                     throw;
                 }
             }
-
             return CreatedAtAction("GetAirCraft", new { id = airCraft.Rab }, airCraft);
         }
 

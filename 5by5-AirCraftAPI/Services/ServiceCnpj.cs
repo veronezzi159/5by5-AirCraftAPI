@@ -1,4 +1,5 @@
 ﻿using _5by5_AirCraftAPI.Models;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace _5by5_AirCraftAPI.Services
@@ -11,13 +12,22 @@ namespace _5by5_AirCraftAPI.Services
         {
             //consume the company api
             var response = _client.GetAsync($"https://localhost:7086/api/CompanyAPI/{cnpj}").Result;
-            var Company = JsonConvert.DeserializeObject<Company>(response.Content.ReadAsStringAsync().Result);
-            if (Company == null)
+            if (response.IsSuccessStatusCode)
             {
-                return "";
+                var company = JsonConvert.DeserializeObject<Company>(response.Content.ReadAsStringAsync().Result);
+                if (company != null && company.Cnpj.Length >= 14)
+                {
+                    
+                    return company.Cnpj ;
+                }
+                
             }
-            else { return Company.Cnpj;}
+            return "";
         }
-        
+        public string CnpjMask(string cnpj)
+        {
+            var mask = $"{cnpj.Substring(0, 2)}.{cnpj.Substring(2, 3)}.{cnpj.Substring(5, 3)}/{cnpj.Substring(8, 4)}-{cnpj.Substring(12)}";
+            return mask;
+        }
     }
 }

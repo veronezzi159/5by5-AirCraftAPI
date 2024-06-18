@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using _5by5_AirCraftAPI.Data;
+using _5by5_AirCraftAPI.Services;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<_5by5_AirCraftAPIContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("_5by5_AirCraftAPIContext") ?? throw new InvalidOperationException("Connection string '_5by5_AirCraftAPIContext' not found.")));
@@ -9,6 +10,7 @@ builder.Services.AddDbContext<_5by5_AirCraftAPIContext>(options =>
 
 builder.Services.AddControllers();
 
+builder.Services.AddSingleton<ServiceCnpj>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
