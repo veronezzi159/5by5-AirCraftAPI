@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using _5by5_AirCraftAPI.Data;
 using _5by5_AirCraftAPI.Models;
 using _5by5_AirCraftAPI.Services;
+using System.Diagnostics.Contracts;
+using _5by5_AirCraftAPI.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace _5by5_AirCraftAPI.Controllers
@@ -17,6 +19,7 @@ namespace _5by5_AirCraftAPI.Controllers
     public class AirCraftController : ControllerBase
     {
         private readonly _5by5_AirCraftAPIContext _context;
+        private readonly ServiceCapacity _serviceCapacity;
         private readonly ServiceCnpj _serviceCnpj;
         private readonly ServiceDataFormat _serviceDataFormat;
         private readonly ServiceRAB _serviceRAB;
@@ -27,6 +30,7 @@ namespace _5by5_AirCraftAPI.Controllers
             _serviceCnpj = cnpj;
             _serviceDataFormat = dataFormat;
             _serviceRAB = rab;
+            _serviceCapacity = new ServiceCapacity();
         }
 
         // GET: api/AirCraft
@@ -66,8 +70,11 @@ namespace _5by5_AirCraftAPI.Controllers
 
         // PUT: api/AirCraft/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //aqui é o link que ele manda para a documentação do asp.net para proteger contra overposting attacks, é um link que ensina como proteger a aplicação contra ataques de overposting e overposting é quando o usuário envia mais dados do que o necessário para a aplicação, então é uma forma de proteger a aplicação contra isso.
+        
+        
         [HttpPut("{rab}")]
-        public async Task<IActionResult> PutAirCraft(string rab, AirCraft airCraft)
+        public async Task<IActionResult> PutAirCraft(string rab, AirCraft airCraft) //Aqui ele usa o método PutAirCraft para atualizar uma aeronave e ele passa o id e a aeronave que ele quer atualizar
         {
             rab = rab.ToUpper(); 
 
@@ -75,8 +82,14 @@ namespace _5by5_AirCraftAPI.Controllers
             {
                 return BadRequest("O ID fornecido não corresponde ao Rab da aeronave.");
             }
+            
+            //Nesse If ele verifica a capacidade da aeronave, se a capacidade for menor ou igual a zero, ele retorna um erro de conflito
+            if (!_serviceCapacity.verifyCapacity(airCraft))
+            {
+                return Conflict("Capacidade invalida");
+            } 
 
-            _context.Entry(airCraft).State = EntityState.Modified;
+            _context.Entry(airCraft).State = EntityState.Modified;//Aqui ele muda o estado da aeronave para modificado no banco de dados
 
             try
             {
@@ -98,8 +111,9 @@ namespace _5by5_AirCraftAPI.Controllers
         }
 
         // POST: api/AirCraft
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754 
+        
+        [HttpPost] //aqui é o método que ele usa para criar uma nova aeronave e ele usa o método PostAirCraft para fazer isso
         public async Task<ActionResult<AirCraft>> PostAirCraft(AirCraft airCraft)
         {
             if (airCraft.CnpjCompany.Length == 14)
@@ -114,6 +128,17 @@ namespace _5by5_AirCraftAPI.Controllers
             {
                 return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
             }
+          if (_context.AirCraft == null)
+          {
+              return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
+          }
+          
+          //Esse If verifica a capacidade da aeronave, se a capacidade for menor ou igual a zero ou maior que 240, ele retorna um erro de conflito
+          if (!_serviceCapacity.verifyCapacity(airCraft))
+            {
+                return Conflict("Capacidade invalida");
+            }
+          
             try
             {
                 airCraft.Rab = _serviceRAB.ValidateRAB(airCraft.Rab);
