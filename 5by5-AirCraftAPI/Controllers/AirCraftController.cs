@@ -21,12 +21,12 @@ namespace _5by5_AirCraftAPI.Controllers
         private readonly ServiceDataFormat _serviceDataFormat;
         private readonly ServiceRAB _serviceRAB;
 
-        public AirCraftController(_5by5_AirCraftAPIContext context, ServiceCnpj cnpj,ServiceDataFormat dataFormat)
+        public AirCraftController(_5by5_AirCraftAPIContext context, ServiceCnpj cnpj,ServiceDataFormat dataFormat, ServiceRAB rab)
         {
             _context = context;
             _serviceCnpj = cnpj;
             _serviceDataFormat = dataFormat;
-            _serviceRAB = new ServiceRAB();
+            _serviceRAB = rab;
         }
 
         // GET: api/AirCraft
@@ -47,14 +47,14 @@ namespace _5by5_AirCraftAPI.Controllers
         }
 
         // GET: api/AirCraft/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<AirCraft>> GetAirCraft(string id)
+        [HttpGet("{rab}")]
+        public async Task<ActionResult<AirCraft>> GetAirCraft(string rab)
         {
           if (_context.AirCraft == null)
           {
               return NotFound();
           }
-            var airCraft = await _context.AirCraft.FindAsync(id);
+            var airCraft = await _context.AirCraft.FindAsync(rab);
 
             if (airCraft == null)
             {
@@ -66,12 +66,12 @@ namespace _5by5_AirCraftAPI.Controllers
 
         // PUT: api/AirCraft/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAirCraft(string id, AirCraft airCraft)
+        [HttpPut("{rab}")]
+        public async Task<IActionResult> PutAirCraft(string rab, AirCraft airCraft)
         {
-            id = id.ToUpper(); 
+            rab = rab.ToUpper(); 
 
-            if (id != airCraft.Rab)
+            if (rab != airCraft.Rab)
             {
                 return BadRequest("O ID fornecido não corresponde ao Rab da aeronave.");
             }
@@ -84,7 +84,7 @@ namespace _5by5_AirCraftAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AirCraftExists(id))
+                if (!AirCraftExists(rab))
                 {
                     return NotFound("Aeronave não encontrada.");
                 }
@@ -102,24 +102,18 @@ namespace _5by5_AirCraftAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<AirCraft>> PostAirCraft(AirCraft airCraft)
         {
+            if (airCraft.CnpjCompany.Length == 14)
+            {
+                airCraft.CnpjCompany = _serviceCnpj.CnpjMask(airCraft.CnpjCompany);
+            }
             if (_serviceCnpj.ValidationCnpj(airCraft.CnpjCompany) == "")
             {
                 return Problem("Cnpj not found");
             }
-          if (_context.AirCraft == null)
-          {
-              return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
-            }
-          if (airCraft.CnpjCompany.Length == 14)
-            {
-                airCraft.CnpjCompany = _serviceCnpj.CnpjMask(airCraft.CnpjCompany);
-            }
-            _context.AirCraft.Add(airCraft);
             if (_context.AirCraft == null)
             {
-                return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft' is null.");
+                return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
             }
-
             try
             {
                 airCraft.Rab = _serviceRAB.ValidateRAB(airCraft.Rab);
@@ -131,12 +125,12 @@ namespace _5by5_AirCraftAPI.Controllers
 
             if (AirCraftIsRemoved(airCraft.Rab))
             {
-                return Conflict("Uma Aeronave com este RAB está removida. Não foi possível cadastrar!");
+                return Problem("Uma Aeronave com este RAB está removida. Não foi possível cadastrar!");
             }
 
             if (AirCraftExists(airCraft.Rab))
             {
-                return Conflict("Uma Aeronave com este RAB já existe.");
+                return Problem("Uma Aeronave com este RAB já existe.");
             }
 
             try
@@ -149,20 +143,20 @@ namespace _5by5_AirCraftAPI.Controllers
                 throw; 
             }
 
-            return CreatedAtAction("GetAirCraft", new { id = airCraft.Rab }, airCraft);
+            return CreatedAtAction("GetAirCraft", new { rab = airCraft.Rab }, airCraft);
         }
 
 
 
         // DELETE: api/AirCraft/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAirCraft(string id)
+        [HttpDelete("{rab}")]
+        public async Task<IActionResult> DeleteAirCraft(string rab)
         {
-            id = id.ToUpper();
+            rab = rab.ToUpper();
 
-            var airCraft = await _context.AirCraft.FindAsync(id);
+            var airCraft = await _context.AirCraft.FindAsync(rab);
 
-            if (AirCraftIsRemoved(id))
+            if (AirCraftIsRemoved(rab))
             {
                 return Conflict("A Aeronave já está removida.");
             }
@@ -171,8 +165,6 @@ namespace _5by5_AirCraftAPI.Controllers
             {
                 return Conflict("Aeronave não encontrada no cadastro.");
             }
-            
-
             try
             {
                 var copyAirCraft = CopyAirCraft(airCraft);
@@ -184,18 +176,58 @@ namespace _5by5_AirCraftAPI.Controllers
                 await _context.SaveChangesAsync();
 
                 
-                if (!AirCraftExists(id))
+                if (!AirCraftExists(rab))
                 {
                     return Ok("Aeronave removida com sucesso.");
                 }
 
                 return NoContent(); 
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException dbc)
             {
-                return StatusCode(500, $"Erro ao excluir aeronave: {ex.Message}");
+                return Problem($"Aeronave não removida,DbUpdateConcurrencyException \n {dbc.Message}");
+            }
+            catch (DbUpdateException dbe)
+            {
+                return Problem($"Aeronave não removida,DbUpdateExceptio \n {dbe.Message}");
+            }
+            catch (Exception e)
+            {
+                return Problem($"Aeronave não removida \n {e.Message}");
             }
         }
+
+        [HttpPut("UpdateData/{rab}/{rab}")]
+        public async Task<IActionResult> UpdateData(string rab, string newDate)
+        {
+            var airCraft = await _context.AirCraft.FindAsync(rab);
+            var date = DateTime.Parse(newDate);
+            if (airCraft == null)
+            {
+                return NotFound();
+            }
+            if (date < airCraft.DTLastFlight)
+            {
+                return BadRequest("Date is before last flight");
+            }
+
+            airCraft.DTLastFlight = date;
+            _context.Update(airCraft);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+
+            }
+            catch (Exception)
+            {
+                return Problem("Error updating date");
+            }
+
+
+            return NoContent();
+        }
+
 
         private Removed CopyAirCraft(AirCraft airCraft)
         {

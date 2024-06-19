@@ -12,6 +12,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddSingleton<ServiceCnpj>();
 builder.Services.AddSingleton<ServiceDataFormat>();
+builder.Services.AddSingleton<ServiceRAB>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
