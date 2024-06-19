@@ -115,11 +115,8 @@ namespace _5by5_AirCraftAPI.Controllers
         [HttpPost] //aqui é o método que ele usa para criar uma nova aeronave e ele usa o método PostAirCraft para fazer isso
         public async Task<ActionResult<AirCraft>> PostAirCraft(AirCraft airCraft)
         {
-            if (airCraft.CnpjCompany.Length == 14)
-            {
-                airCraft.CnpjCompany = _serviceCnpj.CnpjMask(airCraft.CnpjCompany);
-            }
-            if (_serviceCnpj.ValidationCnpj(airCraft.CnpjCompany) == "")
+            airCraft.CnpjCompany = _serviceCnpj.ValidationCnpj(airCraft.CnpjCompany);
+            if (airCraft.CnpjCompany == String.Empty)
             {
                 return Problem("Cnpj não encontrado");
             }
