@@ -15,12 +15,12 @@ namespace _5by5_AirCraftAPI.Services
         ///<returns> True se a capacidade for valida, em não sendo trás uma execeção</returns>
         ///<excetion cref="ArgumentException">la'ncada quand a capacidade for invalida .</excetion>
         
-        private const int maxCapacity = 240;
+        private const int maxCapacity = 240; // Capacidade máxima de uma aeronave
         public bool verifyCapacity(AirCraft airCraft)
         {
             if (airCraft.Capacity <= 0)
             {
-                throw new ArgumentException("Capacidade invalida: Capacidade deve ser sempre maior que o.");
+                throw new ArgumentException("Capacidade invalida: Capacidade deve ser sempre maior que 0 (zero).");
             }
             else if (airCraft.Capacity > maxCapacity)
             {
@@ -32,7 +32,3 @@ namespace _5by5_AirCraftAPI.Services
 }
 
 
-/// <summary>
-/// Daiane
-/// </summary>
-// Aqui ele está verificando se a capacidade do avião é válida, usa o método verifyCapacity para verificar se a capacidade é válida, se não for válida ele lança uma exceção com a mensagem "Capacidade invalida" 
