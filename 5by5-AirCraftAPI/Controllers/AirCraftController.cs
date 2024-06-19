@@ -215,7 +215,7 @@ namespace _5by5_AirCraftAPI.Controllers
             }
         }
 
-        [HttpPut("UpdateData/{rab}/{rab}")]
+        [HttpPut("UpdateData/{rab}/{newDate}")]
         public async Task<IActionResult> UpdateData(string rab, string newDate)
         {
             var airCraft = await _context.AirCraft.FindAsync(rab);
