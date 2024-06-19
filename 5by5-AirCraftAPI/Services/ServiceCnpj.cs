@@ -26,18 +26,13 @@ namespace _5by5_AirCraftAPI.Services
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine("Request Error " + ex);
+               throw new ArgumentException ("Erro ao enviar requisições para a API " + ex.Message);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                throw new ArgumentException("API não encontrada " + ex.Message);
             }
             return "";
         }
-        //public string CnpjMask(string cnpj)
-        //{
-        //    var mask = $"{cnpj.Substring(0, 2)}.{cnpj.Substring(2, 3)}.{cnpj.Substring(5, 3)}/{cnpj.Substring(8, 4)}-{cnpj.Substring(12)}";
-        //    return mask;
-        //}
     }
 }
