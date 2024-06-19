@@ -9,7 +9,6 @@ using _5by5_AirCraftAPI.Data;
 using _5by5_AirCraftAPI.Models;
 using _5by5_AirCraftAPI.Services;
 using System.Diagnostics.Contracts;
-using _5by5_AirCraftAPI.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace _5by5_AirCraftAPI.Controllers
@@ -24,13 +23,13 @@ namespace _5by5_AirCraftAPI.Controllers
         private readonly ServiceDataFormat _serviceDataFormat;
         private readonly ServiceRAB _serviceRAB;
 
-        public AirCraftController(_5by5_AirCraftAPIContext context, ServiceCnpj cnpj,ServiceDataFormat dataFormat, ServiceRAB rab)
+        public AirCraftController(_5by5_AirCraftAPIContext context, ServiceCnpj cnpj, ServiceDataFormat dataFormat, ServiceRAB rab, ServiceCapacity capacity)
         {
             _context = context;
             _serviceCnpj = cnpj;
             _serviceDataFormat = dataFormat;
             _serviceRAB = rab;
-            _serviceCapacity = new ServiceCapacity();
+            _serviceCapacity = capacity;
         }
 
         // GET: api/AirCraft
@@ -38,14 +37,14 @@ namespace _5by5_AirCraftAPI.Controllers
         public async Task<ActionResult<IEnumerable<AirCraftDTO>>> GetAirCraft()
         {
             var dto = new List<AirCraftDTO>();
-          if (_context.AirCraft == null)
-          {
-              return NotFound();
-          }
-           var BD =  await _context.AirCraft.ToListAsync();
-            foreach(var item in BD)
+            if (_context.AirCraft == null)
             {
-                dto.Add(new AirCraftDTO { Rab = item.Rab,Capacity = item.Capacity, DTRegistry = _serviceDataFormat.MaskDate(item.DTRegistry),DTLastFlight = _serviceDataFormat.MaskDate(item.DTLastFlight),CnpjCompany = item.CnpjCompany });
+                return NotFound();
+            }
+            var BD = await _context.AirCraft.ToListAsync();
+            foreach (var item in BD)
+            {
+                dto.Add(new AirCraftDTO { Rab = item.Rab, Capacity = item.Capacity, DTRegistry = _serviceDataFormat.MaskDate(item.DTRegistry), DTLastFlight = _serviceDataFormat.MaskDate(item.DTLastFlight), CnpjCompany = item.CnpjCompany });
             }
             return dto;
         }
@@ -54,10 +53,10 @@ namespace _5by5_AirCraftAPI.Controllers
         [HttpGet("{rab}")]
         public async Task<ActionResult<AirCraft>> GetAirCraft(string rab)
         {
-          if (_context.AirCraft == null)
-          {
-              return NotFound();
-          }
+            if (_context.AirCraft == null)
+            {
+                return NotFound();
+            }
             var airCraft = await _context.AirCraft.FindAsync(rab);
 
             if (airCraft == null)
@@ -71,23 +70,23 @@ namespace _5by5_AirCraftAPI.Controllers
         // PUT: api/AirCraft/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         //aqui é o link que ele manda para a documentação do asp.net para proteger contra overposting attacks, é um link que ensina como proteger a aplicação contra ataques de overposting e overposting é quando o usuário envia mais dados do que o necessário para a aplicação, então é uma forma de proteger a aplicação contra isso.
-        
-        
+
+
         [HttpPut("{rab}")]
         public async Task<IActionResult> PutAirCraft(string rab, AirCraft airCraft) //Aqui ele usa o método PutAirCraft para atualizar uma aeronave e ele passa o id e a aeronave que ele quer atualizar
         {
-            rab = rab.ToUpper(); 
+            rab = rab.ToUpper();
 
             if (rab != airCraft.Rab)
             {
                 return BadRequest("O ID fornecido não corresponde ao Rab da aeronave.");
             }
-            
+
             //Nesse If ele verifica a capacidade da aeronave, se a capacidade for menor ou igual a zero, ele retorna um erro de conflito
             if (!_serviceCapacity.verifyCapacity(airCraft))
             {
                 return Conflict("Capacidade invalida");
-            } 
+            }
 
             _context.Entry(airCraft).State = EntityState.Modified;//Aqui ele muda o estado da aeronave para modificado no banco de dados
 
@@ -112,7 +111,7 @@ namespace _5by5_AirCraftAPI.Controllers
 
         // POST: api/AirCraft
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754 
-        
+
         [HttpPost] //aqui é o método que ele usa para criar uma nova aeronave e ele usa o método PostAirCraft para fazer isso
         public async Task<ActionResult<AirCraft>> PostAirCraft(AirCraft airCraft)
         {
@@ -128,17 +127,11 @@ namespace _5by5_AirCraftAPI.Controllers
             {
                 return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
             }
-          if (_context.AirCraft == null)
-          {
-              return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
-          }
-          
-          //Esse If verifica a capacidade da aeronave, se a capacidade for menor ou igual a zero ou maior que 240, ele retorna um erro de conflito
-          if (!_serviceCapacity.verifyCapacity(airCraft))
+            //Esse If verifica a capacidade da aeronave, se a capacidade for menor ou igual a zero ou maior que 240, ele retorna um erro de conflito
+            if (!_serviceCapacity.verifyCapacity(airCraft))
             {
                 return Conflict("Capacidade invalida");
             }
-          
             try
             {
                 airCraft.Rab = _serviceRAB.ValidateRAB(airCraft.Rab);
@@ -165,7 +158,7 @@ namespace _5by5_AirCraftAPI.Controllers
             }
             catch (DbUpdateException)
             {
-                throw; 
+                throw;
             }
 
             return CreatedAtAction("GetAirCraft", new { rab = airCraft.Rab }, airCraft);
@@ -200,13 +193,13 @@ namespace _5by5_AirCraftAPI.Controllers
 
                 await _context.SaveChangesAsync();
 
-                
+
                 if (!AirCraftExists(rab))
                 {
                     return Ok("Aeronave removida com sucesso.");
                 }
 
-                return NoContent(); 
+                return NoContent();
             }
             catch (DbUpdateConcurrencyException dbc)
             {
@@ -273,10 +266,10 @@ namespace _5by5_AirCraftAPI.Controllers
             return _context.AirCraft.Any(e => e.Rab == id);
         }
 
-       public bool AirCraftIsRemoved(string id)
+        public bool AirCraftIsRemoved(string id)
         {
             return _context.Removed.Any(e => e.Rab == id);
-        }   
+        }
 
 
     }
