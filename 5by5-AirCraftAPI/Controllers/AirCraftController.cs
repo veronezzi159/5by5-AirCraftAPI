@@ -108,7 +108,7 @@ namespace _5by5_AirCraftAPI.Controllers
             }
             if (_serviceCnpj.ValidationCnpj(airCraft.CnpjCompany) == "")
             {
-                return Problem("Cnpj not found");
+                return Problem("Cnpj não encontrado");
             }
             if (_context.AirCraft == null)
             {
@@ -208,7 +208,7 @@ namespace _5by5_AirCraftAPI.Controllers
             }
             if (date < airCraft.DTLastFlight)
             {
-                return BadRequest("Date is before last flight");
+                return BadRequest("A data é anterior ao último voo");
             }
 
             airCraft.DTLastFlight = date;
@@ -221,7 +221,7 @@ namespace _5by5_AirCraftAPI.Controllers
             }
             catch (Exception)
             {
-                return Problem("Error updating date");
+                return Problem("Erro ao atualizar a data");
             }
 
 
