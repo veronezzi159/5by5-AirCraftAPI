@@ -113,17 +113,16 @@ namespace _5by5_AirCraftAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754 
 
         [HttpPost] //aqui é o método que ele usa para criar uma nova aeronave e ele usa o método PostAirCraft para fazer isso
-        public async Task<ActionResult<AirCraft>> PostAirCraft(AirCraft airCraft)
+        public async Task<ActionResult<AirCraft>> PostAirCraft(AirCraftPost airCraftPost)
         {
+            var airCraft = new AirCraft(airCraftPost);
+
             airCraft.CnpjCompany = _serviceCnpj.ValidationCnpj(airCraft.CnpjCompany);
             if (airCraft.CnpjCompany == String.Empty)
             {
                 return Problem("Cnpj não encontrado");
             }
-            if (_context.AirCraft == null)
-            {
-                return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
-            }
+            
             //Esse If verifica a capacidade da aeronave, se a capacidade for menor ou igual a zero ou maior que 240, ele retorna um erro de conflito
             if (!_serviceCapacity.verifyCapacity(airCraft))
             {
@@ -151,6 +150,10 @@ namespace _5by5_AirCraftAPI.Controllers
             try
             {
                 _context.AirCraft.Add(airCraft);
+                if (_context.AirCraft == null)
+                {
+                    return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
+                }
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
