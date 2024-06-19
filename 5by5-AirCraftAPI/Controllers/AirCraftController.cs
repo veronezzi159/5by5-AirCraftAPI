@@ -37,8 +37,8 @@ namespace _5by5_AirCraftAPI.Controllers
         }
 
         // GET: api/AirCraft/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<AirCraft>> GetAirCraft(string id)
+        [HttpGet("{rab}")]
+        public async Task<ActionResult<AirCraft>> GetAirCraft(string rab)
         {
            
            
@@ -46,7 +46,7 @@ namespace _5by5_AirCraftAPI.Controllers
           {
               return NotFound();
           }
-            var airCraft = await _context.AirCraft.FindAsync(id);
+            var airCraft = await _context.AirCraft.FindAsync(rab);
 
             if (airCraft == null)
             {
@@ -61,10 +61,10 @@ namespace _5by5_AirCraftAPI.Controllers
         //aqui é o link que ele manda para a documentação do asp.net para proteger contra overposting attacks, é um link que ensina como proteger a aplicação contra ataques de overposting e overposting é quando o usuário envia mais dados do que o necessário para a aplicação, então é uma forma de proteger a aplicação contra isso.
         
         
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAirCraft(string id, AirCraft airCraft) //Aqui ele usa o método PutAirCraft para atualizar uma aeronave e ele passa o id e a aeronave que ele quer atualizar
+        [HttpPut("{rab}")]
+        public async Task<IActionResult> PutAirCraft(string rab, AirCraft airCraft) //Aqui ele usa o método PutAirCraft para atualizar uma aeronave e ele passa o id e a aeronave que ele quer atualizar
         {
-            if (id != airCraft.Rab)
+            if (rab != airCraft.Rab)
             {
                 return BadRequest();
             }
@@ -83,7 +83,7 @@ namespace _5by5_AirCraftAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AirCraftExists(id))
+                if (!AirCraftExists(rab))
                 {
                     return NotFound();
                 }
@@ -130,18 +130,18 @@ namespace _5by5_AirCraftAPI.Controllers
                 }
             }
 
-            return CreatedAtAction("GetAirCraft", new { id = airCraft.Rab }, airCraft);
+            return CreatedAtAction("GetAirCraft", new { rab = airCraft.Rab }, airCraft);
         }
 
         // DELETE: api/AirCraft/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAirCraft(string id)
+        [HttpDelete("{rab}")]
+        public async Task<IActionResult> DeleteAirCraft(string rab)
         {
             if (_context.AirCraft == null)
             {
                 return NotFound();
             }
-            var airCraft = await _context.AirCraft.FindAsync(id);
+            var airCraft = await _context.AirCraft.FindAsync(rab);
             if (airCraft == null)
             {
                 return NotFound();
