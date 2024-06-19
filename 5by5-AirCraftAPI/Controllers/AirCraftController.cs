@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using _5by5_AirCraftAPI.Data;
 using _5by5_AirCraftAPI.Models;
+using _5by5_AirCraftAPI.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace _5by5_AirCraftAPI.Controllers
 {
@@ -15,29 +17,37 @@ namespace _5by5_AirCraftAPI.Controllers
     public class AirCraftController : ControllerBase
     {
         private readonly _5by5_AirCraftAPIContext _context;
+        private readonly ServiceCnpj _serviceCnpj;
+        private readonly ServiceDataFormat _serviceDataFormat;
 
-        public AirCraftController(_5by5_AirCraftAPIContext context)
+        public AirCraftController(_5by5_AirCraftAPIContext context, ServiceCnpj cnpj,ServiceDataFormat dataFormat)
         {
             _context = context;
+            _serviceCnpj = cnpj;
+            _serviceDataFormat = dataFormat;
         }
 
         // GET: api/AirCraft
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AirCraft>>> GetAirCraft()
+        public async Task<ActionResult<IEnumerable<AirCraftDTO>>> GetAirCraft()
         {
+            var dto = new List<AirCraftDTO>();
           if (_context.AirCraft == null)
           {
               return NotFound();
           }
-            return await _context.AirCraft.ToListAsync();
+           var BD =  await _context.AirCraft.ToListAsync();
+            foreach(var item in BD)
+            {
+                dto.Add(new AirCraftDTO { Rab = item.Rab,Capacity = item.Capacity, DTRegistry = _serviceDataFormat.MaskDate(item.DTRegistry),DTLastFlight = _serviceDataFormat.MaskDate(item.DTLastFlight),CnpjCompany = item.CnpjCompany });
+            }
+            return dto;
         }
 
         // GET: api/AirCraft/5
         [HttpGet("{id}")]
         public async Task<ActionResult<AirCraft>> GetAirCraft(string id)
         {
-           
-           
           if (_context.AirCraft == null)
           {
               return NotFound();
@@ -88,10 +98,18 @@ namespace _5by5_AirCraftAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<AirCraft>> PostAirCraft(AirCraft airCraft)
         {
+            if (_serviceCnpj.ValidationCnpj(airCraft.CnpjCompany) == "")
+            {
+                return Problem("Cnpj not found");
+            }
           if (_context.AirCraft == null)
           {
               return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
-          }
+            }
+          if (airCraft.CnpjCompany.Length == 14)
+            {
+                airCraft.CnpjCompany = _serviceCnpj.CnpjMask(airCraft.CnpjCompany);
+            }
             _context.AirCraft.Add(airCraft);
             try
             {
@@ -108,7 +126,6 @@ namespace _5by5_AirCraftAPI.Controllers
                     throw;
                 }
             }
-
             return CreatedAtAction("GetAirCraft", new { id = airCraft.Rab }, airCraft);
         }
 

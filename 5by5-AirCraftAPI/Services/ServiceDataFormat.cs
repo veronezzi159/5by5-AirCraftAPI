@@ -2,5 +2,10 @@
 {
     public class ServiceDataFormat
     {
+        public string MaskDate(DateTime date)
+        {
+           
+            return $"{date.ToString().Substring(0,10)}";
+        }
     }
 }
