@@ -98,17 +98,14 @@ namespace _5by5_AirCraftAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<AirCraft>> PostAirCraft(AirCraft airCraft)
         {
-            if (_serviceCnpj.ValidationCnpj(airCraft.CnpjCompany) == "")
+            airCraft.CnpjCompany = _serviceCnpj.ValidationCnpj(airCraft.CnpjCompany);
+            if (airCraft.CnpjCompany == String.Empty)
             {
-                return Problem("Cnpj not found");
+                return Problem("Cnpj não encontrado");
             }
           if (_context.AirCraft == null)
           {
               return Problem("Entity set '_5by5_AirCraftAPIContext.AirCraft'  is null.");
-            }
-          if (airCraft.CnpjCompany.Length == 14)
-            {
-                airCraft.CnpjCompany = _serviceCnpj.CnpjMask(airCraft.CnpjCompany);
             }
             _context.AirCraft.Add(airCraft);
             try
